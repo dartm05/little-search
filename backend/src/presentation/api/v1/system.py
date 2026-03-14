@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, status
 
@@ -29,7 +30,7 @@ async def health_check() -> HealthResponse:
 async def readiness_check(
     cache_store: RedisCacheStore = Depends(get_cache_store),
     vector_store: QdrantVectorStore = Depends(get_vector_store),
-) -> dict[str, any]:
+) -> dict[str, Any]:
     """Readiness probe that checks dependencies.
 
     Args:
@@ -65,7 +66,7 @@ async def readiness_check(
 @router.get("/stats")
 async def get_system_stats(
     vector_store: QdrantVectorStore = Depends(get_vector_store),
-) -> dict[str, any]:
+) -> dict[str, Any]:
     """Get system statistics.
 
     Args:

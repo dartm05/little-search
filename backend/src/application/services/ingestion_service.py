@@ -1,7 +1,7 @@
 """Ingestion service - orchestrates document ingestion."""
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from domain.entities import Document
 from domain.interfaces import IChunker, IEmbeddingGenerator, IVectorStore
@@ -35,7 +35,7 @@ class IngestionService:
         self._vector_store = vector_store
         logger.info("IngestionService initialized")
 
-    async def ingest_document(self, document: Document) -> dict[str, any]:
+    async def ingest_document(self, document: Document) -> dict[str, Any]:
         """Ingest a document into the search system.
 
         This orchestrates the full pipeline:
@@ -137,7 +137,7 @@ class IngestionService:
             logger.error(f"Failed to delete document {document_id}: {e}")
             raise RuntimeError(f"Document deletion failed: {e}") from e
 
-    async def get_document_stats(self, document_id: str) -> dict[str, any]:
+    async def get_document_stats(self, document_id: str) -> dict[str, Any]:
         """Get statistics for a document.
 
         Args:
@@ -164,7 +164,7 @@ class IngestionService:
 
     async def reindex_document(
         self, document: Document, delete_old: bool = True
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """Reindex an existing document.
 
         Args:

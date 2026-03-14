@@ -118,9 +118,10 @@ class QdrantVectorStore(IVectorStore):
 
             points = [
                 PointStruct(
-                    id=chunk.id,
+                    id=str(uuid.uuid5(uuid.NAMESPACE_DNS, chunk.id)),
                     vector=chunk.embedding,
                     payload={
+                        "chunk_id": chunk.id, 
                         "document_id": chunk.document_id,
                         "content": chunk.content,
                         "chunk_index": chunk.chunk_index,
@@ -190,7 +191,7 @@ class QdrantVectorStore(IVectorStore):
             search_results = []
             for result in results:
                 chunk = Chunk(
-                    id=str(result.id),
+                    id=result.payload.get("chunk_id", str(result.id)),
                     document_id=result.payload["document_id"],
                     content=result.payload["content"],
                     chunk_index=result.payload["chunk_index"],

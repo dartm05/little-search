@@ -3,6 +3,8 @@
 from .requests import DocumentUploadRequest, SearchRequest
 from .responses import (
     DocumentResponse,
+    DocumentStatsResponse,
+    ErrorResponse,
     HealthResponse,
     IngestionResponse,
     SearchResponse,
@@ -13,6 +15,8 @@ __all__ = [
     "DocumentUploadRequest",
     "SearchRequest",
     "DocumentResponse",
+    "DocumentStatsResponse",
+    "ErrorResponse",
     "SearchResponse",
     "SearchResultItem",
     "IngestionResponse",
