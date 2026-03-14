@@ -1,12 +1,18 @@
 """LittleSearch FastAPI Application Entry Point."""
 
 import logging
+import sys
+from pathlib import Path
+
+# Add src to Python path
+sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.logging import setup_logging
 from config.settings import get_settings
+from presentation.api.v1 import documents, search, system
 
 # Set up logging
 setup_logging()
@@ -31,6 +37,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Include routers
+app.include_router(documents.router, prefix="/api/v1")
+app.include_router(search.router, prefix="/api/v1")
+app.include_router(system.router, prefix="/api/v1")
 
 
 @app.on_event("startup")
@@ -53,28 +63,7 @@ async def root() -> dict[str, str]:
     Returns:
         dict: Welcome message
     """
-    return {"message": "Welcome to LittleSearch API"}
-
-
-@app.get("/api/v1/health")
-async def health() -> dict[str, str]:
-    """Health check endpoint.
-
-    Returns:
-        dict: Health status
-    """
-    return {"status": "healthy", "version": "0.1.0"}
-
-
-@app.get("/api/v1/ready")
-async def ready() -> dict[str, bool]:
-    """Readiness probe endpoint.
-
-    Returns:
-        dict: Readiness status
-    """
-    # TODO: Add actual checks for Redis, Qdrant, etc.
-    return {"ready": True}
+    return {"message": "Welcome to LittleSearch API", "docs": "/docs"}
 
 
 if __name__ == "__main__":
