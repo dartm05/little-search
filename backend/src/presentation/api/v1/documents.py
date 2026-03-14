@@ -1,5 +1,6 @@
 """Document management endpoints."""
 
+import asyncio
 import logging
 import uuid
 from datetime import datetime
@@ -14,6 +15,11 @@ from presentation.api.models import (
     DocumentUploadRequest,
     ErrorResponse,
     IngestionResponse,
+)
+from presentation.api.models.batch_models import (
+    BatchDocumentRequest,
+    BatchDocumentResult,
+    BatchIngestionResponse,
 )
 from presentation.dependencies import get_ingestion_service
 
@@ -150,3 +156,84 @@ async def get_document_stats(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get document stats",
         )
+
+
+@router.post(
+    "/batch",
+    response_model=BatchIngestionResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        400: {"model": ErrorResponse},
+        500: {"model": ErrorResponse},
+    },
+)
+async def batch_upload_documents(
+    request: BatchDocumentRequest,
+    ingestion_service: IngestionService = Depends(get_ingestion_service),
+) -> BatchIngestionResponse:
+    """Upload and index multiple documents in batch.
+
+    This endpoint processes documents concurrently for better performance.
+
+    Args:
+        request: Batch document upload request
+        ingestion_service: Ingestion service dependency
+
+    Returns:
+        BatchIngestionResponse: Batch ingestion results
+
+    Raises:
+        HTTPException: If batch operation fails
+    """
+    logger.info(f"Batch upload: {len(request.documents)} documents")
+
+    results = []
+    successful = 0
+    failed = 0
+
+    async def process_document(doc_data: dict) -> BatchDocumentResult:
+        """Process a single document."""
+        try:
+            # Create document entity
+            document = Document(
+                id=str(uuid.uuid4()),
+                content=doc_data.get("content", ""),
+                metadata=doc_data.get("metadata", {}),
+                created_at=datetime.utcnow(),
+            )
+
+            # Ingest document
+            result = await ingestion_service.ingest_document(document)
+
+            return BatchDocumentResult(
+                document_id=result["document_id"],
+                status="success",
+                chunks_created=result["chunks_created"],
+            )
+        except Exception as e:
+            logger.error(f"Failed to process document in batch: {e}")
+            return BatchDocumentResult(
+                document_id=doc_data.get("id", "unknown"),
+                status="failed",
+                error=str(e),
+            )
+
+    # Process all documents concurrently
+    tasks = [process_document(doc) for doc in request.documents]
+    results = await asyncio.gather(*tasks)
+
+    # Count successes and failures
+    for result in results:
+        if result.status == "success":
+            successful += 1
+        else:
+            failed += 1
+
+    logger.info(f"Batch upload complete: {successful} successful, {failed} failed")
+
+    return BatchIngestionResponse(
+        total_documents=len(request.documents),
+        successful=successful,
+        failed=failed,
+        results=results,
+    )

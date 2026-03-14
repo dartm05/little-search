@@ -69,6 +69,7 @@ class SearchService:
         top_k: int = 10,
         filter_conditions: Optional[dict] = None,
         use_cache: bool = True,
+        min_score: Optional[float] = None,
     ) -> list[SearchResult]:
         """Perform semantic search.
 
@@ -120,6 +121,10 @@ class SearchService:
             # For now, creating minimal Document objects from chunk metadata
             search_results = []
             for chunk, score in results:
+                # Apply minimum score filter if specified
+                if min_score is not None and score < min_score:
+                    continue
+
                 # Create a minimal document representation
                 # In production, this would fetch from a document store
                 document = Document(
@@ -132,7 +137,7 @@ class SearchService:
                 )
                 search_results.append(search_result)
 
-            logger.info(f"Found {len(search_results)} results")
+            logger.info(f"Found {len(search_results)} results (min_score={min_score})")
 
             # Cache results
             if use_cache and search_results:

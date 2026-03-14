@@ -45,6 +45,12 @@ class SearchRequest(BaseModel):
     use_summary: bool = Field(
         default=False, description="Whether to generate LLM summary"
     )
+    min_score: Optional[float] = Field(
+        default=None, ge=0.0, le=1.0, description="Minimum similarity score"
+    )
+    rerank: bool = Field(
+        default=False, description="Whether to rerank results"
+    )
 
     @field_validator("query")
     @classmethod

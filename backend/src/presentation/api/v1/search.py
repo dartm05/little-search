@@ -24,6 +24,7 @@ async def search_documents(
     query: str = Query(..., min_length=1, description="Search query"),
     top_k: int = Query(10, ge=1, le=100, description="Number of results"),
     use_cache: bool = Query(True, description="Whether to use cache"),
+    min_score: float | None = Query(None, ge=0.0, le=1.0, description="Minimum similarity score"),
     search_service: SearchService = Depends(get_search_service),
 ) -> SearchResponse:
     """Search for documents using semantic similarity.
@@ -45,7 +46,7 @@ async def search_documents(
 
         # Perform search
         results = await search_service.search(
-            query=query, top_k=top_k, use_cache=use_cache
+            query=query, top_k=top_k, use_cache=use_cache, min_score=min_score
         )
 
         # Convert to response model
