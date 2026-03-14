@@ -3,6 +3,7 @@
 from functools import lru_cache
 
 from application.services import IngestionService, SearchService
+from application.services.analytics_service import AnalyticsService
 from config.settings import get_settings
 from infrastructure.cache import RedisCacheStore
 from infrastructure.chunking import SlidingWindowChunker
@@ -97,3 +98,13 @@ def get_ingestion_service() -> IngestionService:
         embedding_generator=get_embedding_generator(),
         vector_store=get_vector_store(),
     )
+
+
+@lru_cache()
+def get_analytics_service() -> AnalyticsService:
+    """Get analytics service instance.
+
+    Returns:
+        AnalyticsService: Analytics service
+    """
+    return AnalyticsService(cache_store=get_cache_store())

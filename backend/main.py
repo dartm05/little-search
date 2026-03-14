@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config.logging import setup_logging
 from config.settings import get_settings
-from presentation.api.v1 import documents, search, system
+from presentation.api.v1 import analytics, documents, search, system
 
 # Set up logging
 setup_logging()
@@ -41,6 +41,7 @@ app.add_middleware(
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")
 app.include_router(system.router, prefix="/api/v1")
+app.include_router(analytics.router, prefix="/api/v1")
 
 
 @app.on_event("startup")
